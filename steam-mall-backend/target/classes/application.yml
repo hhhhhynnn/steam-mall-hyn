@@ -1,0 +1,70 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: steam-mall
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/steam_mall?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+      database: 1
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# JWT 配置
+jwt:
+  secret: your-secret-key-here-change-in-production-steam-mall-2024
+  expiration: 86400000
+  header: Authorization
+  prefix: Bearer 
+
+# 阿里云 OSS 配置
+aliyun:
+  oss:
+    endpoint: oss-cn-shanghai.aliyuncs.com
+    accessKeyId: LTAI5t7oHNBMQn2wSm2HkDUm
+    accessKeySecret: h0L55CdbHHOdqrxZCR746eNjeNSQF4
+    bucketName: hangyinengbishe
+    baseUrl: https://hangyinengbishe.oss-cn-shanghai.aliyuncs.com
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.steam: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n'
+# 启用定时任务
+task:
+  enabled: true
+  hot-sale:
+    interval: 900000
