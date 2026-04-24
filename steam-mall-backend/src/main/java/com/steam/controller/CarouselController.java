@@ -1,8 +1,9 @@
 package com.steam.controller;
 
 import com.steam.dto.ApiResponse;
+import com.steam.dto.FeaturedGameCarouselDto;
 import com.steam.entity.Carousel;
-import com.steam.repository.CarouselRepository;
+import com.steam.service.CarouselService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,11 +15,15 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class CarouselController {
 
-    private final CarouselRepository carouselRepository;
+    private final CarouselService carouselService;
 
     @GetMapping
     public ApiResponse<List<Carousel>> getAllCarousels() {
-        List<Carousel> carousels = carouselRepository.findByStatusOrderBySortOrder(1);
-        return ApiResponse.success(carousels);
+        return ApiResponse.success(carouselService.getAllCarousels());
+    }
+
+    @GetMapping("/featured")
+    public ApiResponse<List<FeaturedGameCarouselDto>> getFeaturedGames() {
+        return ApiResponse.success(carouselService.getFeaturedGameCarousels());
     }
 }

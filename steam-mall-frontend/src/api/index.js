@@ -14,6 +14,43 @@ export function getCarousels() {
   })
 }
 
+export function getFeaturedCarousels() {
+  return request({
+    url: '/carousels/featured',
+    method: 'get'
+  })
+}
+
+export function getAdminFeaturedCarousels() {
+  return request({
+    url: '/admin/carousels',
+    method: 'get'
+  })
+}
+
+export function createFeaturedCarousel(data) {
+  return request({
+    url: '/admin/carousels',
+    method: 'post',
+    data
+  })
+}
+
+export function updateFeaturedCarousel(id, data) {
+  return request({
+    url: `/admin/carousels/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+export function deleteFeaturedCarousel(id) {
+  return request({
+    url: `/admin/carousels/${id}`,
+    method: 'delete'
+  })
+}
+
 export function getUserLibrary() {
   return request({
     url: '/user/library',
@@ -81,6 +118,20 @@ export function getGameReviews(gameId, params) {
     url: `/reviews/game/${gameId}`,
     method: 'get',
     params
+  })
+}
+
+export function getGameReviewSummary(gameId) {
+  return request({
+    url: `/reviews/game/${gameId}/summary`,
+    method: 'get'
+  })
+}
+
+export function getMyGameReview(gameId) {
+  return request({
+    url: `/reviews/game/${gameId}/mine`,
+    method: 'get'
   })
 }
 

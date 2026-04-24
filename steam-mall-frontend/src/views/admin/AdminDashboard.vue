@@ -4,6 +4,7 @@
       <h1>管理后台</h1>
       <div class="header-actions">
         <el-button type="primary" @click="goToGameManagement">游戏管理</el-button>
+        <el-button type="success" @click="goToFeaturedManagement">精选推荐</el-button>
         <el-button @click="goBack">返回前台</el-button>
       </div>
     </div>
@@ -193,6 +194,10 @@ const goBack = () => {
 
 const goToGameManagement = () => {
   router.push('/admin/games')
+}
+
+const goToFeaturedManagement = () => {
+  router.push('/admin/featured')
 }
 
 onMounted(async () => {

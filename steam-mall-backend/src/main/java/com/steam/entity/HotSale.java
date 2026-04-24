@@ -1,19 +1,23 @@
 package com.steam.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
 @Table(name = "hot_sale")
 public class HotSale {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
+    @Id
     @Column(nullable = false)
     private Long gameId;
 
@@ -30,17 +34,13 @@ public class HotSale {
     @Column(nullable = false)
     private Integer rank;
 
-    @Column(nullable = false, length = 20)
-    private String periodType;  // ALL-总榜，DAILY-日榜，WEEKLY-周榜，MONTHLY-月榜
-
-    @Column(nullable = false)
-    private LocalDate statDate;
-
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(nullable = false)
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
     @PreUpdate
     protected void onUpdate() {

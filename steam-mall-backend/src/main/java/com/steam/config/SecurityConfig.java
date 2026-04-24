@@ -45,6 +45,8 @@ public class SecurityConfig {
                 .requestMatchers("/games/**").permitAll()
                 .requestMatchers("/categories/**").permitAll()
                 .requestMatchers("/carousels/**").permitAll()
+                .requestMatchers("/hot-sale/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/reviews/**").permitAll()
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS).permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")

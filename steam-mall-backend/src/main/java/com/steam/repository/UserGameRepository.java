@@ -22,4 +22,6 @@ public interface UserGameRepository extends JpaRepository<UserGame, Long> {
     List<Long> findGameIdsByUserId(@Param("userId") Long userId);
     
     boolean existsByUserIdAndGameId(Long userId, Long gameId);
+
+    boolean existsByUserIdAndGameIdAndIsActivated(Long userId, Long gameId, Integer isActivated);
 }

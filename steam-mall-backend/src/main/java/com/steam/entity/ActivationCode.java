@@ -26,9 +26,6 @@ public class ActivationCode {
     @Column(nullable = false)
     private Integer status = 0;  // 0-未使用，1-已使用，2-已过期
 
-    private Long userId;
-
-    private LocalDateTime activatedAt;
 
     private LocalDateTime expireTime;
 

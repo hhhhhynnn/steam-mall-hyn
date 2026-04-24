@@ -71,6 +71,12 @@ const routes = [
     name: 'AdminGames',
     component: () => import('@/views/admin/GameManagement.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/featured',
+    name: 'AdminFeatured',
+    component: () => import('@/views/admin/FeaturedManagement.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 

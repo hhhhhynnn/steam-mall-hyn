@@ -1,67 +1,61 @@
 <template>
   <div class="hot-sale-page">
     <div class="container">
-      <h2 class="page-title">🔥 热销榜 TOP 10</h2>
-
-      <div class="period-selector">
-        <el-radio-group v-model="periodType" @change="fetchHotSaleList">
-          <el-radio-button label="ALL">总榜</el-radio-button>
-          <el-radio-button label="DAILY">日榜</el-radio-button>
-          <el-radio-button label="WEEKLY">周榜</el-radio-button>
-          <el-radio-button label="MONTHLY">月榜</el-radio-button>
-        </el-radio-group>
+      <div class="hero">
+        <p class="eyebrow">TOP SELLERS</p>
+        <h1>热销总榜</h1>
+        <p class="subtitle">当前平台累计销量最高的 10 款游戏，点击任意条目可直接进入详情页。</p>
       </div>
 
-      <div class="hot-sale-list">
+      <div class="hot-sale-board">
         <div
-            v-for="(item, index) in hotSaleList"
-            :key="item.id"
-            class="hot-sale-item"
-            :class="{ 'top-3': index < 3 }"
-            @click="goToGameDetail(item.gameId)">
-
-          <div class="rank" :class="'rank-' + (index + 1)">
-            {{ index + 1 }}
+          v-for="(item, index) in hotSaleList"
+          :key="item.gameId"
+          class="board-item"
+          :class="{ champion: index === 0 }"
+          @click="goToGameDetail(item.gameId)"
+        >
+          <div class="board-rank">
+            <span class="rank-number">#{{ index + 1 }}</span>
           </div>
 
-          <div class="game-cover">
+          <div class="board-cover">
             <img :src="item.coverImage" :alt="item.gameName">
           </div>
 
-          <div class="game-info">
-            <h3 class="game-name">{{ item.gameName }}</h3>
-            <div class="game-meta">
-              <span class="sales-count">销量：{{ item.salesCount }}</span>
+          <div class="board-main">
+            <div class="board-top">
+              <h3>{{ item.gameName }}</h3>
+              <span class="board-badge" v-if="index < 3">HOT</span>
+            </div>
+            <div class="board-meta">
+              <span class="sales">累计销量 {{ item.salesCount }}</span>
               <span class="price">¥{{ item.salesAmount }}</span>
             </div>
           </div>
-
-          <div class="hot-icon" v-if="index < 3">🔥</div>
         </div>
       </div>
 
       <div v-if="hotSaleList.length === 0" class="empty-state">
-        <el-empty description="暂无热销数据"></el-empty>
+        <el-empty description="暂无热销总榜数据"></el-empty>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getHotSaleList } from '@/api/hotSale'
 
 const router = useRouter()
-const periodType = ref('ALL')
 const hotSaleList = ref([])
 
 const fetchHotSaleList = async () => {
   try {
-    const res = await getHotSaleList(periodType.value)
-    hotSaleList.value = res
+    hotSaleList.value = await getHotSaleList()
   } catch (error) {
-    console.error('获取热销榜失败:', error)
+    console.error('get hot sale list failed', error)
   }
 }
 
@@ -77,147 +71,192 @@ onMounted(() => {
 <style scoped>
 .hot-sale-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  padding: 40px 20px;
+  background:
+    radial-gradient(circle at top, rgba(72, 115, 145, 0.22), transparent 30%),
+    linear-gradient(180deg, #121a24 0%, #1b2838 55%, #16202d 100%);
+  padding: 40px 20px 70px;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1180px;
   margin: 0 auto;
 }
 
-.page-title {
+.hero {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: #66c0f4;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
   color: #fff;
-  font-size: 32px;
-  text-align: center;
-  margin-bottom: 30px;
+  font-size: 40px;
 }
 
-.period-selector {
-  text-align: center;
-  margin-bottom: 30px;
+.subtitle {
+  margin: 0;
+  color: #a7bacc;
+  font-size: 15px;
 }
 
-.hot-sale-list {
+.hot-sale-board {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  gap: 14px;
 }
 
-.hot-sale-item {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
+.board-item {
+  display: grid;
+  grid-template-columns: 90px 300px minmax(0, 1fr);
   align-items: center;
-  gap: 15px;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid rgba(102, 192, 244, 0.14);
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(34, 51, 68, 0.96) 0%, rgba(24, 38, 55, 0.96) 100%);
   cursor: pointer;
-  transition: all 0.3s;
-  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.hot-sale-item:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+.board-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(102, 192, 244, 0.35);
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.28);
 }
 
-.hot-sale-item.top-3 {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
-  border: 1px solid rgba(255, 215, 0, 0.3);
+.board-item.champion {
+  background: linear-gradient(90deg, rgba(61, 47, 22, 0.95) 0%, rgba(31, 45, 62, 0.96) 50%, rgba(24, 38, 55, 0.96) 100%);
+  border-color: rgba(212, 175, 55, 0.38);
 }
 
-.rank {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #333;
-  color: #fff;
+.board-rank {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 18px;
-  flex-shrink: 0;
 }
 
-.rank-1 {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+.rank-number {
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
 }
 
-.rank-2 {
-  background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
-}
-
-.rank-3 {
-  background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
-}
-
-.game-cover {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.game-cover img {
+.board-cover img {
   width: 100%;
-  height: 100%;
+  height: 140px;
   object-fit: cover;
+  border-radius: 6px;
+  display: block;
 }
 
-.game-info {
-  flex: 1;
+.board-main {
   min-width: 0;
 }
 
-.game-name {
+.board-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.board-top h3 {
+  margin: 0;
   color: #fff;
-  font-size: 16px;
-  margin: 0 0 8px 0;
+  font-size: 24px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.game-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.board-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 208, 92, 0.18);
+  color: #ffd166;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-.sales-count {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
+.board-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sales {
+  color: #8fa7bf;
+  font-size: 15px;
 }
 
 .price {
-  color: #1a9bf4;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.hot-icon {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 24px;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
+  color: #a4d007;
+  font-size: 28px;
+  font-weight: 800;
 }
 
 .empty-state {
   text-align: center;
   padding: 60px 20px;
+}
+
+@media (max-width: 900px) {
+  .board-item {
+    grid-template-columns: 72px 1fr;
+  }
+
+  .board-cover {
+    grid-column: 2;
+  }
+
+  .board-main {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .hot-sale-page {
+    padding: 28px 14px 50px;
+  }
+
+  .hero h1 {
+    font-size: 30px;
+  }
+
+  .board-item {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .board-rank,
+  .board-cover,
+  .board-main {
+    grid-column: auto;
+  }
+
+  .board-rank {
+    justify-content: flex-start;
+  }
+
+  .board-cover img {
+    height: 180px;
+  }
+
+  .board-top,
+  .board-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .price {
+    font-size: 24px;
+  }
 }
 </style>

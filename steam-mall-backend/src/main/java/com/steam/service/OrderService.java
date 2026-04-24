@@ -28,6 +28,7 @@ public class OrderService {
     private final GameRepository gameRepository;
     private final UserGameRepository userGameRepository;
     private final ActivationCodeRepository activationCodeRepository;
+    private final HotSaleService hotSaleService;
 
     @Transactional
     public Order createOrder(Long userId, Long gameId) {
@@ -64,6 +65,7 @@ public class OrderService {
         // 点击购买即视为已完成购买，直接更新销量
         game.setSalesCount(game.getSalesCount() + 1);
         gameRepository.save(game);
+        hotSaleService.refreshTop10();
 
         return orderRepository.save(savedOrder);
     }
@@ -100,6 +102,7 @@ public class OrderService {
         if (game != null) {
             game.setSalesCount(game.getSalesCount() + 1);
             gameRepository.save(game);
+            hotSaleService.refreshTop10();
         }
 
         return savedOrder;
@@ -149,8 +152,6 @@ public class OrderService {
 
         // 更新激活码状态为已使用
         ac.setStatus(1);
-        ac.setUserId(userId);
-        ac.setActivatedAt(LocalDateTime.now());
         activationCodeRepository.save(ac);
 
         // 删除已使用的激活码，防止二次使用

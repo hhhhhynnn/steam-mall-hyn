@@ -10,4 +10,6 @@ import java.util.List;
 public interface CarouselRepository extends JpaRepository<Carousel, Long> {
     
     List<Carousel> findByStatusOrderBySortOrder(Integer status);
+
+    List<Carousel> findAllByOrderBySortOrderAscIdAsc();
 }

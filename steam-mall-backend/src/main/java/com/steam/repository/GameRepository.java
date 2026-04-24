@@ -26,7 +26,14 @@ public interface GameRepository extends JpaRepository<Game, Long> {
     @Query("SELECT g FROM Game g WHERE g.status = 1 ORDER BY g.salesCount DESC")
     Page<Game> findTopGames(Pageable pageable);
     
-    @Query("SELECT g FROM Game g WHERE g.status = 1 ORDER BY g.positiveReviews DESC")
+    @Query("""
+            SELECT g FROM Game g
+            WHERE g.status = 1 AND (g.positiveReviews + g.negativeReviews) > 0
+            ORDER BY
+            (1.0 * g.positiveReviews / (g.positiveReviews + g.negativeReviews)) DESC,
+            (g.positiveReviews + g.negativeReviews) DESC,
+            g.positiveReviews DESC
+            """)
     Page<Game> findTopRatedGames(Pageable pageable);
     
     @Query("SELECT g FROM Game g WHERE g.status = 1 ORDER BY g.salesCount DESC LIMIT 10")

@@ -1,6 +1,8 @@
 package com.steam.controller;
 
 import com.steam.dto.ApiResponse;
+import com.steam.dto.GameReviewDto;
+import com.steam.dto.GameReviewSummaryDto;
 import com.steam.entity.GameReview;
 import com.steam.service.AuthenticatedUserService;
 import com.steam.service.UserGameService;
@@ -30,6 +32,27 @@ public class ReviewController {
         }
     }
 
+    @GetMapping("/game/{gameId}/summary")
+    public ApiResponse<GameReviewSummaryDto> getGameReviewSummary(@PathVariable Long gameId) {
+        try {
+            return ApiResponse.success(userGameService.getGameReviewSummary(gameId));
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/game/{gameId}/mine")
+    public ApiResponse<GameReviewDto> getMyReview(
+            @PathVariable Long gameId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            Long userId = authenticatedUserService.getCurrentUserId(userDetails);
+            return ApiResponse.success(userGameService.getMyReview(userId, gameId));
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
     @PostMapping
     public ApiResponse<GameReview> createReview(
             @RequestParam Long gameId,
@@ -39,7 +62,7 @@ public class ReviewController {
         try {
             Long userId = authenticatedUserService.getCurrentUserId(userDetails);
             GameReview review = userGameService.createReview(userId, gameId, isPositive, content);
-            return ApiResponse.success("评价成功", review);
+            return ApiResponse.success("评论成功", review);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -52,8 +75,8 @@ public class ReviewController {
             @RequestParam(required = false) String content,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            userGameService.updateReview(reviewId, isPositive, content);
-            return ApiResponse.success("评价已更新", null);
+            Long userId = authenticatedUserService.getCurrentUserId(userDetails);
+            return ApiResponse.success("评论已更新", userGameService.updateReview(reviewId, userId, isPositive, content));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -64,8 +87,9 @@ public class ReviewController {
             @PathVariable Long reviewId,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            userGameService.deleteReview(reviewId);
-            return ApiResponse.success("评价已删除", null);
+            Long userId = authenticatedUserService.getCurrentUserId(userDetails);
+            userGameService.deleteReview(reviewId, userId);
+            return ApiResponse.success("评论已删除", null);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

@@ -17,12 +17,14 @@ public interface GameReviewRepository extends JpaRepository<GameReview, Long> {
     Page<GameReview> findByGameIdAndStatus(Long gameId, Integer status, Pageable pageable);
     
     Optional<GameReview> findByUserIdAndGameId(Long userId, Long gameId);
+
+    Optional<GameReview> findByIdAndUserId(Long id, Long userId);
     
     List<GameReview> findByUserId(Long userId);
     
-    @Query("SELECT COUNT(r) FROM GameReview r WHERE r.gameId = :gameId AND r.isPositive = 1")
+    @Query("SELECT COUNT(r) FROM GameReview r WHERE r.gameId = :gameId AND r.status = 1 AND r.isPositive = 1")
     Integer countPositiveByGameId(@Param("gameId") Long gameId);
     
-    @Query("SELECT COUNT(r) FROM GameReview r WHERE r.gameId = :gameId AND r.isPositive = 0")
+    @Query("SELECT COUNT(r) FROM GameReview r WHERE r.gameId = :gameId AND r.status = 1 AND r.isPositive = 0")
     Integer countNegativeByGameId(@Param("gameId") Long gameId);
 }

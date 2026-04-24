@@ -78,8 +78,6 @@ public class ActivationCodeService {
 
         // 更新激活码状态
         activationCode.setStatus(1);
-        activationCode.setUserId(userId);
-        activationCode.setActivatedAt(LocalDateTime.now());
         activationCodeRepository.save(activationCode);
 
         // 删除已使用的激活码，防止二次使用
