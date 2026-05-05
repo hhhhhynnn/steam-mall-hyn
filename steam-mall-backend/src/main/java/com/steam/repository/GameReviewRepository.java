@@ -21,6 +21,8 @@ public interface GameReviewRepository extends JpaRepository<GameReview, Long> {
     Optional<GameReview> findByIdAndUserId(Long id, Long userId);
     
     List<GameReview> findByUserId(Long userId);
+
+    long countByUserIdAndStatus(Long userId, Integer status);
     
     @Query("SELECT COUNT(r) FROM GameReview r WHERE r.gameId = :gameId AND r.status = 1 AND r.isPositive = 1")
     Integer countPositiveByGameId(@Param("gameId") Long gameId);

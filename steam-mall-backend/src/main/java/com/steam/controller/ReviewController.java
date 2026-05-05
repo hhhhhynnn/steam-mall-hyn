@@ -11,6 +11,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
@@ -48,6 +50,17 @@ public class ReviewController {
         try {
             Long userId = authenticatedUserService.getCurrentUserId(userDetails);
             return ApiResponse.success(userGameService.getMyReview(userId, gameId));
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/mine/count")
+    public ApiResponse<Map<String, Long>> getMyReviewCount(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            Long userId = authenticatedUserService.getCurrentUserId(userDetails);
+            return ApiResponse.success(Map.of("count", userGameService.getUserReviewCount(userId)));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

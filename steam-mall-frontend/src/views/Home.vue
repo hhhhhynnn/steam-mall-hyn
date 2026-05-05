@@ -211,7 +211,7 @@ const hotSaleGames = ref([])
 const topRated = ref([])
 const searchKeyword = ref('')
 const currentPage = ref(1)
-const pageSize = ref(12)
+const pageSize = ref(9)
 const total = ref(0)
 
 let featuredTimer = null
@@ -680,11 +680,49 @@ onBeforeUnmount(() => {
 }
 
 .search-section {
+  padding: 14px;
   margin-bottom: 30px;
+  background: linear-gradient(180deg, rgba(31, 47, 69, 0.95) 0%, rgba(24, 38, 56, 0.95) 100%);
+  border: 1px solid rgba(102, 192, 244, 0.2);
+  border-radius: 3px;
 }
 
 .search-input {
   max-width: 600px;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  background: #171a21;
+  border: 1px solid rgba(102, 192, 244, 0.24);
+  box-shadow: none;
+}
+
+.search-input :deep(.el-input__wrapper.is-focus),
+.search-input :deep(.el-input__wrapper:hover) {
+  border-color: rgba(102, 192, 244, 0.55);
+  box-shadow: 0 0 0 1px rgba(102, 192, 244, 0.18);
+}
+
+.search-input :deep(.el-input__inner) {
+  color: #c7d5e0;
+}
+
+.search-input :deep(.el-input__inner::placeholder) {
+  color: #6f879a;
+}
+
+.search-input :deep(.el-input-group__append) {
+  background: linear-gradient(180deg, #2a475e 0%, #1b2838 100%);
+  border-color: rgba(102, 192, 244, 0.24);
+  box-shadow: none;
+}
+
+.search-input :deep(.el-input-group__append .el-button) {
+  color: #c7d5e0;
+}
+
+.search-input :deep(.el-input-group__append .el-button:hover) {
+  color: #66c0f4;
 }
 
 .games-section h2 {
@@ -758,6 +796,38 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   margin-top: 40px;
+}
+
+.pagination :deep(.el-pagination) {
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(31, 47, 69, 0.95) 0%, rgba(24, 38, 56, 0.95) 100%);
+  border: 1px solid rgba(102, 192, 244, 0.2);
+  border-radius: 3px;
+}
+
+.pagination :deep(.el-pagination button),
+.pagination :deep(.el-pager li) {
+  background: #171a21;
+  color: #c7d5e0;
+  border: 1px solid rgba(102, 192, 244, 0.18);
+}
+
+.pagination :deep(.el-pagination button:hover),
+.pagination :deep(.el-pager li:hover) {
+  color: #66c0f4;
+  border-color: rgba(102, 192, 244, 0.45);
+}
+
+.pagination :deep(.el-pager li.is-active) {
+  background: linear-gradient(180deg, #66c0f4 0%, #2a75a3 100%);
+  border-color: rgba(102, 192, 244, 0.75);
+  color: #ffffff;
+}
+
+.pagination :deep(.el-pagination button:disabled) {
+  background: rgba(23, 26, 33, 0.58);
+  color: #5d7284;
+  border-color: rgba(102, 192, 244, 0.1);
 }
 
 @media (max-width: 1100px) {

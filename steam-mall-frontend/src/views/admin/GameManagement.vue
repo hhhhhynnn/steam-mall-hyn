@@ -1,11 +1,16 @@
 <template>
   <div class="game-management">
     <div class="management-header">
-      <h2>游戏管理</h2>
-      <el-button type="primary" @click="showAddDialog">添加游戏</el-button>
+      <div>
+        <h2>游戏管理</h2>
+      </div>
+      <div class="header-actions">
+        <el-button @click="goBack">返回后台</el-button>
+        <el-button type="primary" @click="showAddDialog">添加游戏</el-button>
+      </div>
     </div>
 
-    <el-table :data="games" style="width: 100%" v-loading="loading">
+    <el-table class="admin-table" :data="games" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="游戏名称" />
       <el-table-column label="分类" width="180">
@@ -150,10 +155,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategories } from '@/api'
 
+const router = useRouter()
 const userStore = useUserStore()
 
 const games = ref([])
@@ -335,6 +342,10 @@ const handleDelete = async (game) => {
   }
 }
 
+const goBack = () => {
+  router.push('/admin')
+}
+
 onMounted(() => {
   loadCategories()
   loadGames()
@@ -343,37 +354,146 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .game-management {
-  padding: 20px;
+  min-height: 100vh;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgba(102, 192, 244, 0.13) 0%, transparent 34%),
+    linear-gradient(180deg, #1b2838 0%, #101822 100%);
 }
 
 .management-header {
+  max-width: 1400px;
+  margin: 0 auto 24px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  align-items: flex-start;
+  gap: 16px;
 
   h2 {
+    margin: 0;
     color: #ffffff;
   }
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.admin-table {
+  max-width: 1400px;
+  margin: 0 auto;
+  border: 1px solid rgba(102, 192, 244, 0.18);
+  border-radius: 6px;
+  overflow: hidden;
+  --el-table-bg-color: rgba(24, 38, 56, 0.96);
+  --el-table-tr-bg-color: rgba(24, 38, 56, 0.96);
+  --el-table-header-bg-color: #171a21;
+  --el-table-header-text-color: #c7d5e0;
+  --el-table-text-color: #dbe9f4;
+  --el-table-border-color: rgba(102, 192, 244, 0.16);
+  --el-table-row-hover-bg-color: rgba(102, 192, 244, 0.13);
+}
+
+.admin-table :deep(.el-table__inner-wrapper::before),
+.admin-table :deep(.el-table__border-left-patch) {
+  background-color: rgba(102, 192, 244, 0.16);
+}
+
+.admin-table :deep(.el-table__fixed-right),
+.admin-table :deep(.el-table__fixed-right .el-table__fixed-body-wrapper),
+.admin-table :deep(.el-table__fixed-right .el-table__fixed-header-wrapper) {
+  background: #182638;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 24px;
+}
+
+.pagination :deep(.el-pagination) {
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(31, 47, 69, 0.95) 0%, rgba(24, 38, 56, 0.95) 100%);
+  border: 1px solid rgba(102, 192, 244, 0.2);
+  border-radius: 3px;
+}
+
+.pagination :deep(.el-pagination button),
+.pagination :deep(.el-pager li) {
+  background: #171a21;
+  color: #c7d5e0;
+  border: 1px solid rgba(102, 192, 244, 0.18);
+}
+
+.pagination :deep(.el-pagination button:hover),
+.pagination :deep(.el-pager li:hover) {
+  color: #66c0f4;
+  border-color: rgba(102, 192, 244, 0.45);
+}
+
+.pagination :deep(.el-pager li.is-active) {
+  background: linear-gradient(180deg, #66c0f4 0%, #2a75a3 100%);
+  border-color: rgba(102, 192, 244, 0.75);
+  color: #ffffff;
+}
+
+.pagination :deep(.el-pagination button:disabled) {
+  background: rgba(23, 26, 33, 0.58);
+  color: #5d7284;
+  border-color: rgba(102, 192, 244, 0.1);
+}
+
+:deep(.el-dialog) {
+  background: linear-gradient(180deg, #1b2838 0%, #111b27 100%);
+  border: 1px solid rgba(102, 192, 244, 0.22);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.46);
+}
+
+:deep(.el-dialog__title),
+:deep(.el-form-item__label),
+:deep(.el-radio) {
+  color: #c7d5e0;
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: #8fa7bf;
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner),
+:deep(.el-select__wrapper) {
+  background: #171a21;
+  border: 1px solid rgba(102, 192, 244, 0.2);
+  box-shadow: none;
+}
+
+:deep(.el-input__inner),
+:deep(.el-textarea__inner),
+:deep(.el-select__placeholder),
+:deep(.el-select__selected-item) {
+  color: #dbe9f4;
+}
+
+:deep(.el-input-number__decrease),
+:deep(.el-input-number__increase) {
+  background: #22384d;
+  border-color: rgba(102, 192, 244, 0.2);
+  color: #c7d5e0;
 }
 
 .image-uploader {
-  border: 1px dashed #d9d9d9;
+  border: 1px dashed rgba(102, 192, 244, 0.35);
   border-radius: 6px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   width: 150px;
   height: 85px;
+  background: rgba(23, 26, 33, 0.72);
 
   &:hover {
-    border-color: #409EFF;
+    border-color: #66c0f4;
   }
 
   .uploaded-image {
@@ -384,7 +504,7 @@ onMounted(() => {
 
   .uploader-icon {
     font-size: 28px;
-    color: #8c939d;
+    color: #8fa7bf;
     width: 100%;
     height: 100%;
     display: flex;
@@ -394,16 +514,17 @@ onMounted(() => {
 }
 
 .video-uploader {
-  border: 1px dashed #d9d9d9;
+  border: 1px dashed rgba(102, 192, 244, 0.35);
   border-radius: 6px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   width: 200px;
   height: 120px;
+  background: rgba(23, 26, 33, 0.72);
 
   &:hover {
-    border-color: #409EFF;
+    border-color: #66c0f4;
   }
 
   .uploaded-video {
@@ -414,12 +535,23 @@ onMounted(() => {
 
   .uploader-icon {
     font-size: 28px;
-    color: #8c939d;
+    color: #8fa7bf;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .management-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
   }
 }
 </style>

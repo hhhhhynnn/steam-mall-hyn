@@ -1,6 +1,7 @@
 package com.steam.controller;
 
 import com.steam.dto.ApiResponse;
+import com.steam.dto.ShoppingCartCheckoutRequest;
 import com.steam.entity.Order;
 import com.steam.entity.UserGame;
 import com.steam.service.AuthenticatedUserService;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
@@ -27,6 +30,19 @@ public class OrderController {
             Long userId = authenticatedUserService.getCurrentUserId(userDetails);
             Order order = orderService.createOrder(userId, gameId);
             return ApiResponse.success("购买成功，已生成激活码", order);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/batch")
+    public ApiResponse<List<Order>> createOrdersFromCart(
+            @RequestBody ShoppingCartCheckoutRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            Long userId = authenticatedUserService.getCurrentUserId(userDetails);
+            List<Order> orders = orderService.createOrdersFromCart(userId, request);
+            return ApiResponse.success("批量购买成功，已生成激活码", orders);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

@@ -79,6 +79,14 @@ export function createOrder(gameId) {
   })
 }
 
+export function createBatchOrders(data) {
+  return request({
+    url: '/orders/batch',
+    method: 'post',
+    data
+  })
+}
+
 export function payOrder(orderNo) {
   return request({
     url: `/orders/${orderNo}/pay`,
@@ -91,6 +99,34 @@ export function getUserOrders(params) {
     url: '/orders',
     method: 'get',
     params
+  })
+}
+
+export function getCart() {
+  return request({
+    url: '/cart',
+    method: 'get'
+  })
+}
+
+export function getCartCount() {
+  return request({
+    url: '/cart/count',
+    method: 'get'
+  })
+}
+
+export function addToCart(gameId) {
+  return request({
+    url: `/cart/${gameId}`,
+    method: 'post'
+  })
+}
+
+export function removeFromCart(cartItemId) {
+  return request({
+    url: `/cart/${cartItemId}`,
+    method: 'delete'
   })
 }
 
@@ -131,6 +167,13 @@ export function getGameReviewSummary(gameId) {
 export function getMyGameReview(gameId) {
   return request({
     url: `/reviews/game/${gameId}/mine`,
+    method: 'get'
+  })
+}
+
+export function getMyReviewCount() {
+  return request({
+    url: '/reviews/mine/count',
     method: 'get'
   })
 }

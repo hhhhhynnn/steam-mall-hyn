@@ -1,12 +1,15 @@
 package com.steam.service;
 
+import com.steam.dto.ShoppingCartCheckoutRequest;
 import com.steam.entity.ActivationCode;
 import com.steam.entity.Game;
 import com.steam.entity.Order;
+import com.steam.entity.ShoppingCart;
 import com.steam.entity.UserGame;
 import com.steam.repository.ActivationCodeRepository;
 import com.steam.repository.GameRepository;
 import com.steam.repository.OrderRepository;
+import com.steam.repository.ShoppingCartRepository;
 import com.steam.repository.UserGameRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +19,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,46 +34,43 @@ public class OrderService {
     private final GameRepository gameRepository;
     private final UserGameRepository userGameRepository;
     private final ActivationCodeRepository activationCodeRepository;
+    private final ShoppingCartRepository shoppingCartRepository;
     private final HotSaleService hotSaleService;
 
     @Transactional
     public Order createOrder(Long userId, Long gameId) {
-        Long safeGameId = Objects.requireNonNull(gameId, "游戏ID不能为空");
-        Game game = gameRepository.findById(safeGameId)
-                .orElseThrow(() -> new RuntimeException("游戏不存在"));
-
-        if (game.getStatus() != 1) {
-            throw new RuntimeException("游戏已下架");
-        }
-
-        if (userGameRepository.existsByUserIdAndGameId(userId, gameId)) {
-            throw new RuntimeException("您已拥有该游戏");
-        }
-
-        Order order = new Order();
-        order.setOrderNo(generateOrderNo());
-        order.setUserId(userId);
-        order.setGameId(gameId);
-        order.setGameName(game.getName());
-        order.setAmount(game.getFinalPrice() != null ? game.getFinalPrice() : game.getPrice());
-        order.setPaymentStatus(1);
-        order.setPaidAt(LocalDateTime.now());
-
-        Order savedOrder = orderRepository.save(order);
-
-        ActivationCode activationCode = generateActivationCode(
-                savedOrder.getGameId(),
-                savedOrder.getGameName(),
-                savedOrder.getId()
-        );
-        savedOrder.setActivationCode(activationCode.getCode());
-
-        // 点击购买即视为已完成购买，直接更新销量
-        game.setSalesCount(game.getSalesCount() + 1);
-        gameRepository.save(game);
+        Game game = validatePurchasableGame(userId, gameId);
+        Order savedOrder = createPaidOrder(userId, game.getId(), game.getName(), resolveGamePrice(game));
+        increaseSalesCount(game);
+        shoppingCartRepository.deleteByUserIdAndGameId(userId, gameId);
         hotSaleService.refreshTop10();
+        return savedOrder;
+    }
 
-        return orderRepository.save(savedOrder);
+    @Transactional
+    public List<Order> createOrdersFromCart(Long userId, ShoppingCartCheckoutRequest request) {
+        List<Long> cartItemIds = request == null ? null : request.getCartItemIds();
+        if (cartItemIds == null || cartItemIds.isEmpty()) {
+            throw new RuntimeException("请选择要购买的购物车商品");
+        }
+
+        List<Long> distinctIds = cartItemIds.stream().distinct().toList();
+        List<ShoppingCart> cartItems = shoppingCartRepository.findByIdInAndUserId(distinctIds, userId);
+        if (cartItems.size() != distinctIds.size()) {
+            throw new RuntimeException("部分购物车商品不存在或无权操作");
+        }
+
+        List<Order> orders = new ArrayList<>();
+        for (ShoppingCart cartItem : cartItems) {
+            Game game = validatePurchasableGame(userId, cartItem.getGameId());
+            Order order = createPaidOrder(userId, cartItem.getGameId(), cartItem.getGameName(), cartItem.getPrice());
+            orders.add(order);
+            increaseSalesCount(game);
+        }
+
+        shoppingCartRepository.deleteAll(cartItems);
+        hotSaleService.refreshTop10();
+        return orders;
     }
 
     @Transactional
@@ -86,22 +89,19 @@ public class OrderService {
         order.setPaymentStatus(1);
         order.setPaidAt(LocalDateTime.now());
 
-        // 生成激活码并回填到订单
         ActivationCode activationCode = generateActivationCode(
-            order.getGameId(),
-            order.getGameName(),
-            order.getId()
+                order.getGameId(),
+                order.getGameName(),
+                order.getId()
         );
         order.setActivationCode(activationCode.getCode());
 
         Order savedOrder = orderRepository.save(order);
 
-        // 更新游戏销量
         Long paidGameId = Objects.requireNonNull(order.getGameId(), "订单游戏ID不能为空");
         Game game = gameRepository.findById(paidGameId).orElse(null);
         if (game != null) {
-            game.setSalesCount(game.getSalesCount() + 1);
-            gameRepository.save(game);
+            increaseSalesCount(game);
             hotSaleService.refreshTop10();
         }
 
@@ -120,28 +120,23 @@ public class OrderService {
 
     @Transactional
     public UserGame activateGame(String activationCode, Long userId) {
-        // 从 activation_code 表查询激活码
         ActivationCode ac = activationCodeRepository.findByCode(activationCode)
                 .orElseThrow(() -> new RuntimeException("激活码无效"));
 
-        // 检查激活码状态
         if (ac.getStatus() != 0) {
             throw new RuntimeException("激活码已被使用或已过期");
         }
 
-        // 检查是否过期
         if (ac.getExpireTime() != null && ac.getExpireTime().isBefore(LocalDateTime.now())) {
-            ac.setStatus(2);  // 设置为已过期
+            ac.setStatus(2);
             activationCodeRepository.save(ac);
             throw new RuntimeException("激活码已过期");
         }
 
-        // 检查用户是否已拥有该游戏
         if (userGameRepository.existsByUserIdAndGameId(userId, ac.getGameId())) {
             throw new RuntimeException("您已拥有该游戏");
         }
 
-        // 添加到用户游戏库
         UserGame userGame = new UserGame();
         userGame.setUserId(userId);
         userGame.setGameId(ac.getGameId());
@@ -150,19 +145,58 @@ public class OrderService {
         userGame.setActivatedAt(LocalDateTime.now());
         userGameRepository.save(userGame);
 
-        // 更新激活码状态为已使用
         ac.setStatus(1);
         activationCodeRepository.save(ac);
-
-        // 删除已使用的激活码，防止二次使用
         activationCodeRepository.delete(ac);
 
         return userGame;
     }
 
-    /**
-     * 生成激活码并存储到数据库
-     */
+    private Game validatePurchasableGame(Long userId, Long gameId) {
+        Long safeGameId = Objects.requireNonNull(gameId, "游戏ID不能为空");
+        Game game = gameRepository.findById(safeGameId)
+                .orElseThrow(() -> new RuntimeException("游戏不存在"));
+
+        if (game.getStatus() != 1) {
+            throw new RuntimeException("游戏已下架");
+        }
+
+        if (userGameRepository.existsByUserIdAndGameId(userId, safeGameId)) {
+            throw new RuntimeException("您已拥有该游戏");
+        }
+
+        return game;
+    }
+
+    private BigDecimal resolveGamePrice(Game game) {
+        return game.getFinalPrice() != null ? game.getFinalPrice() : game.getPrice();
+    }
+
+    private void increaseSalesCount(Game game) {
+        game.setSalesCount(game.getSalesCount() + 1);
+        gameRepository.save(game);
+    }
+
+    private Order createPaidOrder(Long userId, Long gameId, String gameName, BigDecimal amount) {
+        Order order = new Order();
+        order.setOrderNo(generateOrderNo());
+        order.setUserId(userId);
+        order.setGameId(gameId);
+        order.setGameName(gameName);
+        order.setAmount(amount);
+        order.setPaymentStatus(1);
+        order.setPaidAt(LocalDateTime.now());
+
+        Order savedOrder = orderRepository.save(order);
+        ActivationCode activationCode = generateActivationCode(
+                savedOrder.getGameId(),
+                savedOrder.getGameName(),
+                savedOrder.getId()
+        );
+        savedOrder.setActivationCode(activationCode.getCode());
+        return orderRepository.save(savedOrder);
+    }
+
     private ActivationCode generateActivationCode(Long gameId, String gameName, Long orderId) {
         String code;
         do {
@@ -174,17 +208,14 @@ public class OrderService {
         activationCode.setGameId(gameId);
         activationCode.setGameName(gameName);
         activationCode.setOrderId(orderId);
-        activationCode.setStatus(0);  // 未使用
-        activationCode.setExpireTime(LocalDateTime.now().plusYears(10));  // 10 年有效期
+        activationCode.setStatus(0);
+        activationCode.setExpireTime(LocalDateTime.now().plusYears(10));
 
         return activationCodeRepository.save(activationCode);
     }
 
-    /**
-     * 生成随机激活码（格式：XXXX-XXXX-XXXX-XXXX）
-     */
     private String generateRandomCode() {
-        String charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";  // 排除易混淆字符 I、O、1、0
+        String charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         StringBuilder code = new StringBuilder();
         java.security.SecureRandom random = new java.security.SecureRandom();
 
@@ -198,9 +229,6 @@ public class OrderService {
         return code.toString();
     }
 
-    /**
-     * 生成订单号
-     */
     private String generateOrderNo() {
         return "ORD" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }

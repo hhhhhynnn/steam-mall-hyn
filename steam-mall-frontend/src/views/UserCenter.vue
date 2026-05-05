@@ -17,6 +17,10 @@
             <el-icon><User /></el-icon>
             <span>个人资料</span>
           </el-menu-item>
+          <el-menu-item index="cart">
+            <el-icon><ShoppingCart /></el-icon>
+            <span>我的购物车</span>
+          </el-menu-item>
           <el-menu-item index="library">
             <el-icon><VideoPlay /></el-icon>
             <span>我的游戏库</span>
@@ -39,6 +43,10 @@
               <div class="stat-label">已拥有游戏</div>
             </div>
             <div class="stat-item">
+              <div class="stat-value">{{ cartCount }}</div>
+              <div class="stat-label">购物车商品</div>
+            </div>
+            <div class="stat-item">
               <div class="stat-value">{{ orderCount }}</div>
               <div class="stat-label">订单数量</div>
             </div>
@@ -57,7 +65,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getUserGames, getUserOrders } from '@/api'
+import { getCartCount, getMyReviewCount, getUserGames, getUserOrders } from '@/api'
 import Navbar from '@/components/Navbar.vue'
 
 const router = useRouter()
@@ -65,11 +73,14 @@ const userStore = useUserStore()
 
 const activeMenu = ref('profile')
 const libraryCount = ref(0)
+const cartCount = ref(0)
 const orderCount = ref(0)
 const reviewCount = ref(0)
 
 const handleMenuSelect = (index) => {
-  if (index === 'library') {
+  if (index === 'cart') {
+    router.push('/user/cart')
+  } else if (index === 'library') {
     router.push('/user/library')
   } else if (index === 'orders') {
     router.push('/user/orders')
@@ -85,13 +96,25 @@ const loadStats = async () => {
   }
 
   try {
+    const cartRes = await getCartCount()
+    cartCount.value = cartRes.count || 0
+  } catch (error) {
+    console.error(error)
+  }
+
+  try {
     const ordersRes = await getUserOrders({ page: 0, size: 1 })
     orderCount.value = ordersRes.totalElements || 0
   } catch (error) {
     console.error(error)
   }
 
-  reviewCount.value = 0
+  try {
+    const reviewRes = await getMyReviewCount()
+    reviewCount.value = reviewRes.count || 0
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 onMounted(() => {
@@ -167,7 +190,7 @@ onMounted(() => {
 
   .stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     margin-top: 30px;
 
@@ -189,6 +212,22 @@ onMounted(() => {
         font-size: 14px;
       }
     }
+  }
+}
+
+@media (max-width: 960px) {
+  .user-content {
+    grid-template-columns: 1fr;
+  }
+
+  .user-main .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .user-main .stats {
+    grid-template-columns: 1fr;
   }
 }
 </style>

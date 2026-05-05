@@ -84,6 +84,10 @@ public class UserGameService {
                 .orElse(null);
     }
 
+    public long getUserReviewCount(Long userId) {
+        return gameReviewRepository.countByUserIdAndStatus(userId, 1);
+    }
+
     public GameReviewSummaryDto getGameReviewSummary(Long gameId) {
         int positive = safeCount(gameReviewRepository.countPositiveByGameId(gameId));
         int negative = safeCount(gameReviewRepository.countNegativeByGameId(gameId));

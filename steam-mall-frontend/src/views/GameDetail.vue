@@ -181,6 +181,12 @@
                 {{ game.price > 0 ? '立即购买' : '获取游戏' }}
               </el-button>
             </div>
+            <div v-if="!ownsGame" class="cart-strip">
+              <div class="cart-strip-copy">
+                <span class="cart-strip-title">先加入购物车</span>
+              </div>
+              <el-button plain @click="handleAddToCart">加入购物车</el-button>
+            </div>
             <div v-else class="owned-tag">
               <el-tag type="success" size="large">已在库中</el-tag>
             </div>
@@ -232,6 +238,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getGameById } from '@/api/game'
 import {
+  addToCart,
   checkOwnership,
   createOrder,
   createReview,
@@ -409,7 +416,28 @@ const handlePurchase = async () => {
   try {
     const order = await createOrder(route.params.id)
     ElMessage.success(`购买成功，激活码：${order.activationCode}`)
+    window.dispatchEvent(new Event('cart-updated'))
     await checkOwnershipStatus()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error(error)
+    }
+  }
+}
+
+const handleAddToCart = async () => {
+  if (!userStore.isLoggedIn) {
+    ElMessageBox.alert('请先登录', '提示', {
+      confirmButtonText: '去登录',
+      callback: () => router.push('/login')
+    })
+    return
+  }
+
+  try {
+    await addToCart(route.params.id)
+    ElMessage.success('已加入购物车')
+    window.dispatchEvent(new Event('cart-updated'))
   } catch (error) {
     if (error !== 'cancel') {
       console.error(error)
@@ -874,6 +902,34 @@ onMounted(() => {
   margin: 20px 0;
 }
 
+.cart-strip {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: linear-gradient(90deg, rgba(77, 107, 34, 0.95) 0%, rgba(44, 65, 20, 0.95) 100%);
+  border: 1px solid rgba(190, 238, 17, 0.18);
+}
+
+.cart-strip-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #eff8c9;
+}
+
+.cart-strip-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cart-strip-copy small {
+  color: rgba(239, 248, 201, 0.78);
+}
+
 .game-meta {
   margin-top: 20px;
   padding-top: 20px;
@@ -972,6 +1028,11 @@ onMounted(() => {
 
   .review-editor-actions {
     flex-direction: column;
+  }
+
+  .cart-strip {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>
