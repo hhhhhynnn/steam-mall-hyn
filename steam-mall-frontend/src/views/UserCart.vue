@@ -74,11 +74,11 @@
 
               <div class="item-bottom">
                 <div class="price-block">
-                  <span v-if="item.originalPrice && item.originalPrice !== item.price" class="original-price">
+                  <span v-if="item.originalPrice && item.originalPrice !== displayPrice(item)" class="original-price">
                     ¥{{ item.originalPrice }}
                   </span>
-                  <strong>¥{{ item.price }}</strong>
-                  <span class="price-note">入车价</span>
+                  <strong>¥{{ displayPrice(item) }}</strong>
+                  <span class="price-note">当前价</span>
                 </div>
 
                 <div class="status-tags">
@@ -151,11 +151,13 @@ const selectedAmount = computed(() => {
   const selectedSet = new Set(selectedIds.value)
   return items.value
     .filter(item => selectedSet.has(item.id))
-    .reduce((sum, item) => sum + Number(item.price || 0), 0)
+    .reduce((sum, item) => sum + Number(displayPrice(item) || 0), 0)
     .toFixed(2)
 })
 
 const isSelectable = (item) => item.status === 1 && !item.owned
+
+const displayPrice = (item) => item.currentPrice ?? item.price
 
 const normalizeSelection = () => {
   const available = new Set(selectableIds.value)

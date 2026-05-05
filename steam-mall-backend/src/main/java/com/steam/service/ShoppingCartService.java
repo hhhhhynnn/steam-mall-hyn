@@ -73,7 +73,7 @@ public class ShoppingCartService {
                 .toList();
 
         BigDecimal totalAmount = items.stream()
-                .map(ShoppingCartItemDto::getPrice)
+                .map(ShoppingCartItemDto::getCurrentPrice)
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 

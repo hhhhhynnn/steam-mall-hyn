@@ -63,7 +63,7 @@ public class OrderService {
         List<Order> orders = new ArrayList<>();
         for (ShoppingCart cartItem : cartItems) {
             Game game = validatePurchasableGame(userId, cartItem.getGameId());
-            Order order = createPaidOrder(userId, cartItem.getGameId(), cartItem.getGameName(), cartItem.getPrice());
+            Order order = createPaidOrder(userId, game.getId(), game.getName(), resolveGamePrice(game));
             orders.add(order);
             increaseSalesCount(game);
         }
